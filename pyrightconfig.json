@@ -1,0 +1,5 @@
+{
+    "reportUndefinedVariable": "none",
+    "reportMissingImports": "warning",
+    "reportMissingModuleSource": "none"
+  }

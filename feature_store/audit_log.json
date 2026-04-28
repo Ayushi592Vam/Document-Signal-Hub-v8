@@ -1,0 +1,379 @@
+[
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-27T14:38:25.127615",
+    "filename": "Medical_Bill_Statement.pdf",
+    "file_hash": "e7b83886392f50f3edd3ddca4b347e468b7ab78a7c232f19aec93dc620895820",
+    "sheets": [
+      "Page 1",
+      "Page 2"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-27T14:39:18.898966",
+    "filename": "Medical_Bill_Statement.pdf",
+    "sheet": "Page 1",
+    "sheet_hash": "f1ccfd99a00c3af56116cc4d3559002ff20dfb084f93ee74dc917c62f1096d1d",
+    "claim_rows": 1,
+    "sheet_type": "PDF",
+    "total_rows": 1,
+    "total_cols": 19,
+    "col_renames": {}
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T12:15:00.840576",
+    "filename": "fnol2.txt",
+    "file_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "sheets": [
+      "Transcript"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T12:15:00.912794",
+    "filename": "fnol2.txt",
+    "sheet": "Transcript",
+    "sheet_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "claim_rows": 0,
+    "sheet_type": "TXT_TRANSCRIPT",
+    "total_rows": 0,
+    "total_cols": 0,
+    "col_renames": {}
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T12:35:10.201056",
+    "filename": "fnol2.txt",
+    "file_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "sheets": [
+      "Transcript"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T12:35:10.235950",
+    "filename": "fnol2.txt",
+    "sheet": "Transcript",
+    "sheet_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "claim_rows": 0,
+    "sheet_type": "TXT_TRANSCRIPT",
+    "total_rows": 0,
+    "total_cols": 0,
+    "col_renames": {}
+  },
+  {
+    "event": "LLM_FIELD_MAP",
+    "timestamp": "2026-04-28T12:38:35.863865",
+    "sheet": "Transcript",
+    "schema": "Guidewire",
+    "source_cols": [
+      "Insurer"
+    ],
+    "mappings": {
+      "Insurer": "Carrier"
+    }
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T12:50:03.594281",
+    "filename": "fnol2.txt",
+    "file_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "sheets": [
+      "Transcript"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T12:50:03.625062",
+    "filename": "fnol2.txt",
+    "sheet": "Transcript",
+    "sheet_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "claim_rows": 0,
+    "sheet_type": "TXT_TRANSCRIPT",
+    "total_rows": 0,
+    "total_cols": 0,
+    "col_renames": {}
+  },
+  {
+    "event": "LLM_FIELD_MAP",
+    "timestamp": "2026-04-28T12:52:48.182265",
+    "sheet": "Transcript",
+    "schema": "Guidewire",
+    "source_cols": [
+      "insi"
+    ],
+    "mappings": {}
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T13:49:14.618856",
+    "filename": "fnol2.txt",
+    "file_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "sheets": [
+      "Transcript"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T13:49:14.646207",
+    "filename": "fnol2.txt",
+    "sheet": "Transcript",
+    "sheet_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "claim_rows": 0,
+    "sheet_type": "TXT_TRANSCRIPT",
+    "total_rows": 0,
+    "total_cols": 0,
+    "col_renames": {}
+  },
+  {
+    "event": "LLM_FIELD_MAP",
+    "timestamp": "2026-04-28T13:49:44.720282",
+    "sheet": "Transcript",
+    "schema": "Guidewire",
+    "source_cols": [
+      "ABC Company"
+    ],
+    "mappings": {
+      "ABC Company": "Carrier"
+    }
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T14:18:56.731565",
+    "filename": "fnol2.txt",
+    "file_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "sheets": [
+      "Transcript"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T14:18:56.755173",
+    "filename": "fnol2.txt",
+    "sheet": "Transcript",
+    "sheet_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "claim_rows": 0,
+    "sheet_type": "TXT_TRANSCRIPT",
+    "total_rows": 0,
+    "total_cols": 0,
+    "col_renames": {}
+  },
+  {
+    "event": "LLM_FIELD_MAP",
+    "timestamp": "2026-04-28T14:19:12.972482",
+    "sheet": "Transcript",
+    "schema": "Guidewire",
+    "source_cols": [
+      "ABC Company"
+    ],
+    "mappings": {
+      "ABC Company": "Carrier"
+    }
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T14:29:27.617270",
+    "filename": "fnol2.txt",
+    "file_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "sheets": [
+      "Transcript"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T14:29:27.638097",
+    "filename": "fnol2.txt",
+    "sheet": "Transcript",
+    "sheet_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "claim_rows": 0,
+    "sheet_type": "TXT_TRANSCRIPT",
+    "total_rows": 0,
+    "total_cols": 0,
+    "col_renames": {}
+  },
+  {
+    "event": "LLM_FIELD_MAP",
+    "timestamp": "2026-04-28T14:30:12.125077",
+    "sheet": "Transcript",
+    "schema": "Guidewire",
+    "source_cols": [
+      "PC Domain"
+    ],
+    "mappings": {}
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T14:39:32.170167",
+    "filename": "fnol2.txt",
+    "file_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "sheets": [
+      "Transcript"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T14:39:32.184204",
+    "filename": "fnol2.txt",
+    "sheet": "Transcript",
+    "sheet_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "claim_rows": 0,
+    "sheet_type": "TXT_TRANSCRIPT",
+    "total_rows": 0,
+    "total_cols": 0,
+    "col_renames": {}
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T14:44:22.246750",
+    "filename": "fnol2.txt",
+    "file_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "sheets": [
+      "Transcript"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T14:44:22.260376",
+    "filename": "fnol2.txt",
+    "sheet": "Transcript",
+    "sheet_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "claim_rows": 0,
+    "sheet_type": "TXT_TRANSCRIPT",
+    "total_rows": 0,
+    "total_cols": 0,
+    "col_renames": {}
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T14:49:16.773718",
+    "filename": "Medical_Bill_Statement.pdf",
+    "file_hash": "e7b83886392f50f3edd3ddca4b347e468b7ab78a7c232f19aec93dc620895820",
+    "sheets": [
+      "Page 1",
+      "Page 2"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T14:49:53.348552",
+    "filename": "Medical_Bill_Statement.pdf",
+    "sheet": "Page 1",
+    "sheet_hash": "f1ccfd99a00c3af56116cc4d3559002ff20dfb084f93ee74dc917c62f1096d1d",
+    "claim_rows": 1,
+    "sheet_type": "PDF",
+    "total_rows": 1,
+    "total_cols": 19,
+    "col_renames": {}
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T15:06:52.688430",
+    "filename": "Medical_Bill_Statement.pdf",
+    "file_hash": "e7b83886392f50f3edd3ddca4b347e468b7ab78a7c232f19aec93dc620895820",
+    "sheets": [
+      "Page 1",
+      "Page 2"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T15:07:31.672908",
+    "filename": "Medical_Bill_Statement.pdf",
+    "sheet": "Page 1",
+    "sheet_hash": "f1ccfd99a00c3af56116cc4d3559002ff20dfb084f93ee74dc917c62f1096d1d",
+    "claim_rows": 1,
+    "sheet_type": "PDF",
+    "total_rows": 1,
+    "total_cols": 19,
+    "col_renames": {}
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T15:44:29.855321",
+    "filename": "Medical_Bill_Statement.pdf",
+    "file_hash": "e7b83886392f50f3edd3ddca4b347e468b7ab78a7c232f19aec93dc620895820",
+    "sheets": [
+      "Page 1",
+      "Page 2"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T15:45:09.620437",
+    "filename": "Medical_Bill_Statement.pdf",
+    "sheet": "Page 1",
+    "sheet_hash": "f1ccfd99a00c3af56116cc4d3559002ff20dfb084f93ee74dc917c62f1096d1d",
+    "claim_rows": 1,
+    "sheet_type": "PDF",
+    "total_rows": 1,
+    "total_cols": 19,
+    "col_renames": {}
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T15:50:46.841257",
+    "filename": "fnol2.txt",
+    "file_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "sheets": [
+      "Transcript"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T15:50:46.860108",
+    "filename": "fnol2.txt",
+    "sheet": "Transcript",
+    "sheet_hash": "8be735012f47256d00ea7b70ec4ffc0b6125b542fb1193aaaff110ce190fa52a",
+    "claim_rows": 0,
+    "sheet_type": "TXT_TRANSCRIPT",
+    "total_rows": 0,
+    "total_cols": 0,
+    "col_renames": {}
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T15:51:21.852276",
+    "filename": "Medical_Bill_Statement.pdf",
+    "file_hash": "e7b83886392f50f3edd3ddca4b347e468b7ab78a7c232f19aec93dc620895820",
+    "sheets": [
+      "Page 1",
+      "Page 2"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T15:52:03.089998",
+    "filename": "Medical_Bill_Statement.pdf",
+    "sheet": "Page 1",
+    "sheet_hash": "f1ccfd99a00c3af56116cc4d3559002ff20dfb084f93ee74dc917c62f1096d1d",
+    "claim_rows": 1,
+    "sheet_type": "PDF",
+    "total_rows": 1,
+    "total_cols": 19,
+    "col_renames": {}
+  },
+  {
+    "event": "FILE_INGESTED",
+    "timestamp": "2026-04-28T16:03:26.736095",
+    "filename": "Medical_Bill_Statement.pdf",
+    "file_hash": "e7b83886392f50f3edd3ddca4b347e468b7ab78a7c232f19aec93dc620895820",
+    "sheets": [
+      "Page 1",
+      "Page 2"
+    ]
+  },
+  {
+    "event": "SHEET_PARSED",
+    "timestamp": "2026-04-28T16:04:22.957256",
+    "filename": "Medical_Bill_Statement.pdf",
+    "sheet": "Page 1",
+    "sheet_hash": "f1ccfd99a00c3af56116cc4d3559002ff20dfb084f93ee74dc917c62f1096d1d",
+    "claim_rows": 1,
+    "sheet_type": "PDF",
+    "total_rows": 1,
+    "total_cols": 19,
+    "col_renames": {}
+  }
+]
