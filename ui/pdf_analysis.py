@@ -4587,10 +4587,15 @@ def render_pdf_analysis_panel(
     if _prev_fp != _intel_fp:
         # Only wipe cost logs if we're switching FROM a previously seen file,
         # not on the very first load (where _prev_fp is None means app just started)
-        if _prev_fp is not None:
-            st.session_state.pop("_llm_cost_log", None)
-            st.session_state.pop("_adi_cost_log", None)
-            
+        if _prev_fp is not None and _prev_fp != _intel_fp:
+           st.session_state.pop("_llm_cost_log", None)
+           st.session_state.pop("_adi_cost_log", None)
+
+        # Only bust intel cache when switching files, not on first load
+           for k in list(st.session_state.keys()):
+              if k.startswith("_intel_result_"):
+                 st.session_state.pop(k, None)  
+
         for _stale_key in (
             "_adi_lookup",
             "_adi_lookup_file",
