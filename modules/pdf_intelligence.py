@@ -1123,8 +1123,10 @@ def run_pdf_intelligence(parsed: dict, sheet_cache: dict | None = None) -> dict:
                    existing = st.session_state.get("_llm_cost_log", [])
                    if not existing:
                       st.session_state["_llm_cost_log"] = cached["_saved_cost_log"]
-                return cached
-                
+                   return cached
+                 # ── ADD THIS: no saved cost log means pre-patch cache — fall through to re-run ──
+                else:
+                      st.session_state.pop(_cache_key, None) 
     except Exception:
         _fhash     = ""
         _cache_key = ""
