@@ -307,8 +307,12 @@ def map_claim_to_schema(
     return result
 
 
-# ── Title-field extractor (legacy merged-cell path) ───────────────────────────
 
+
+
+
+
+# ── Unknown-field detection + LLM field mapper ────────────────────────────────
 def extract_title_fields(merged_meta: dict) -> dict:
     found: dict = {}
     title_rows  = sorted(
@@ -317,42 +321,99 @@ def extract_title_fields(merged_meta: dict) -> dict:
     )
     for m in title_rows:
         text, r, c = str(m["value"]).strip(), m["excel_row"], m["excel_col"]
+        region_key = f"R{m['row_start']}C{m['col_start']}"  # unique key per region
 
-        def _info(val):
-            return {"value": val, "original": val, "modified": val,
-                    "source": "title_row", "excel_row": r, "excel_col": c, "title_text": text}
+        def _info(val, src_key=None):
+            return {
+                "value":       val,
+                "original":    val,
+                "modified":    val,
+                "source":      "title_row",
+                "excel_row":   r,
+                "excel_col":   c,
+                "title_text":  text,
+                "region_key":  src_key or region_key,
+                "region_type": m.get("type", "TITLE"),
+                "cell_range":  f"R{m['row_start']}C{m['col_start']}→R{m['row_end']}C{m['col_end']}",
+                "span_cols":   m.get("span_cols", 1),
+            }
+
+        # ── Regex-based semantic extraction (existing logic) ──────────────────
+        matched_semantically = False
 
         pol = re.search(r'Policy\s*(?:#|No\.?|Number)?\s*[:\-]\s*([A-Z0-9][A-Z0-9\-/\.]+)', text, re.IGNORECASE)
         if pol and "Policy Number" not in found:
             found["Policy Number"] = _info(pol.group(1).strip())
+            matched_semantically = True
+
         ins = re.search(r'Insured\s*[:\-]\s*([^\|;]+)', text, re.IGNORECASE)
         if ins and "Insured Name" not in found:
             found["Insured Name"] = _info(ins.group(1).strip())
+            matched_semantically = True
+
         carr = re.search(r'Carrier\s*[:\-]\s*([^\|;]+)', text, re.IGNORECASE)
         if carr:
             val = carr.group(1).strip()
             for k in ("Carrier", "Carrier Name"):
                 if k not in found:
                     found[k] = _info(val)
+            matched_semantically = True
+
         state = re.search(r'State\s*[:\-]\s*([^\|;]+)', text, re.IGNORECASE)
         if state:
             val = state.group(1).strip()
             for k in ("State", "Jurisdiction", "State Code"):
                 if k not in found:
                     found[k] = _info(val)
-        period = re.search(
-            r'Period\s*[:\-]?\s*(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})[\s\u2013\u2014\-to]+'
-            r'(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})',
+            matched_semantically = True
+
+        # Underwriting period checked first — if matched, skip generic period
+        # regex entirely to avoid creating duplicate date fields from same cell.
+        uw_period = re.search(
+            r'Underwriting\s+Period\s*[:\-]?\s*'
+            r'(\d{1,2}\s+\w+\s+\d{4}|\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})'
+            r'[\s\u2013\u2014\-to]+'
+            r'(\d{1,2}\s+\w+\s+\d{4}|\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})',
             text, re.IGNORECASE,
         )
-        if period:
-            s, e = period.group(1).strip(), period.group(2).strip()
+        if uw_period:
+            s, e = uw_period.group(1).strip(), uw_period.group(2).strip()
             for k, v in [
-                ("Policy Period Start", s), ("Policy Period End", e),
-                ("Policy Effective Date", s), ("Policy Expiry Date", e),
+                ("Underwriting Period Start", s),
+                ("Underwriting Period End", e),
             ]:
                 if k not in found:
                     found[k] = _info(v)
+            matched_semantically = True
+        else:
+            # Only run generic period regex if NOT an underwriting period cell
+            period = re.search(
+                r'Period\s*[:\-]?\s*(\d{1,2}[/\-\.]\d{1,2}[/\-\.]\d{2,4}|\d{1,2}\s+\w+\s+\d{4})'
+                r'[\s\u2013\u2014\-to]+'
+                r'(\d{1,2}[/\-\.]\d{1,2}[/\-\.]\d{2,4}|\d{1,2}\s+\w+\s+\d{4})',
+                text, re.IGNORECASE,
+            )
+            if period:
+                s, e = period.group(1).strip(), period.group(2).strip()
+                for k, v in [
+                    ("Policy Period Start", s),
+                    ("Policy Period End", e),
+                ]:
+                    if k not in found:
+                        found[k] = _info(v)
+                matched_semantically = True
+
+        # Contract / reference number  e.g. "CONTRACT NUMBER:PLIC/25"
+        contract = re.search(
+            r'Contract\s*(?:No\.?|Number|#|Ref)?\s*[:\-]\s*([A-Z0-9][A-Z0-9\-/\.]+)',
+            text, re.IGNORECASE,
+        )
+        if contract and "Contract Number" not in found:
+            found["Contract Number"] = _info(contract.group(1).strip())
+            matched_semantically = True
+
+        
+
         lob_map = [
             (r"workers[\'\'\u2019\s\-]*compensation", "Workers Compensation"),
             (r"workers[\s\-]*comp\b", "Workers Compensation"),
@@ -368,11 +429,31 @@ def extract_title_fields(merged_meta: dict) -> dict:
         for pattern, lob_val in lob_map:
             if re.search(pattern, text, re.IGNORECASE) and "Line of Business" not in found:
                 found["Line of Business"] = _info(lob_val)
+                matched_semantically = True
                 break
+
+        # ── RAW FALLBACK: store every unmatched merged region as-is ──────────
+        if not matched_semantically:
+            kv_split = re.match(r'^([^:\-]{3,40})[:\-]\s*(.+)$', text, re.IGNORECASE)
+            if kv_split:
+                # "KEY: VALUE" pattern — use the key part as field name
+                raw_key = kv_split.group(1).strip().title()
+                raw_val = kv_split.group(2).strip()
+            else:
+                # No separator — this is a plain label/name cell (e.g. "AR LLC",
+                # "Print Excess Ins. Co"). Use region position as the key so we
+                # don't use the cell VALUE as the field name (avoids duplicates
+                # like "AR LLC" appearing as both a value AND a key).
+                _region_type_label = m.get("type", "TITLE").title()
+                raw_key = f"{_region_type_label} [{region_key}]"
+                raw_val = text
+
+            # Avoid overwriting semantic fields with the same name
+            store_key = raw_key if raw_key not in found else f"{raw_key} [{region_key}]"
+            found[store_key] = _info(raw_val)
+
     return found
 
-
-# ── Unknown-field detection + LLM field mapper ────────────────────────────────
 
 def _has_unknown_fields(claim_keys: list, schema_name: str) -> bool:
     from config.schemas import SCHEMAS
@@ -462,7 +543,7 @@ def llm_map_unknown_fields(sample_rows: list, schema_name: str, sheet_name: str)
         "}"
     )
     try:
-        raw    = _llm_call(prompt, max_tokens=600)
+        raw    = _llm_call(prompt, max_tokens=600, call_purpose="field_mapping")
         raw    = raw.strip().lstrip("```json").lstrip("```").rstrip("```").strip()
         result = __import__("json").loads(raw)
 

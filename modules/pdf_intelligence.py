@@ -1116,17 +1116,17 @@ def run_pdf_intelligence(parsed: dict, sheet_cache: dict | None = None) -> dict:
         _cache_key = f"_intel_result_{_fhash}"
 
         if _cache_key in st.session_state:
-            cached = st.session_state[_cache_key]
-            if cached.get("_content_hash") == _fhash:
-                # Re-inject saved cost log so Cost Intelligence tab populates
-                if "_saved_cost_log" in cached:
-                   existing = st.session_state.get("_llm_cost_log", [])
-                   if not existing:
-                      st.session_state["_llm_cost_log"] = cached["_saved_cost_log"]
-                   return cached
-                 # ── ADD THIS: no saved cost log means pre-patch cache — fall through to re-run ──
-                else:
-                      st.session_state.pop(_cache_key, None) 
+           cached = st.session_state[_cache_key]
+           if cached.get("_content_hash") == _fhash:
+              saved_llm = cached.get("_saved_cost_log", [])
+              saved_adi = cached.get("_saved_adi_cost_log", [])
+              cur_llm   = st.session_state.get("_llm_cost_log", [])
+              cur_adi   = st.session_state.get("_adi_cost_log", [])
+              if len(saved_llm) > len(cur_llm):
+                  st.session_state["_llm_cost_log"] = list(saved_llm)
+              if len(saved_adi) > len(cur_adi):
+                  st.session_state["_adi_cost_log"] = list(saved_adi)
+              return cached
     except Exception:
         _fhash     = ""
         _cache_key = ""
@@ -1186,9 +1186,10 @@ def run_pdf_intelligence(parsed: dict, sheet_cache: dict | None = None) -> dict:
     # ── Store in session cache ─────────────────────────────────────────────────
 
     try:
-       if _cache_key:
-           result["_saved_cost_log"] = st.session_state.get("_llm_cost_log", [])
-           st.session_state[_cache_key] = result
+        if _cache_key:
+          result["_saved_cost_log"]     = list(st.session_state.get("_llm_cost_log", []))
+          result["_saved_adi_cost_log"] = list(st.session_state.get("_adi_cost_log", []))
+          st.session_state[_cache_key]  = result
     except Exception:
         pass
 

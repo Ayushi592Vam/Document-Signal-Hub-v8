@@ -528,6 +528,18 @@ def parse_pdf_with_azure(file_path: str | Path) -> dict:
     """
     file_path = str(file_path)
 
+    # ── Session-state cache — prevent duplicate ADI calls ─────────────────
+    try:
+        import streamlit as st
+        import hashlib
+        with open(file_path, "rb") as _f:
+            _content_hash = hashlib.md5(_f.read()).hexdigest()
+        _cache_key = f"_adi_parsed_{_content_hash}"
+        if _cache_key in st.session_state:
+            return st.session_state[_cache_key]
+    except Exception:
+        _cache_key = ""
+
     # ── Build client — catch credential / config errors ───────────────────────
     try:
         client = _get_di_client()
@@ -659,11 +671,20 @@ def parse_pdf_with_azure(file_path: str | Path) -> dict:
             "fields":     page_field_map.get(page_num, []),
         })
 
-    return {
+    
+    result_dict = {
         "doc_type":  "pdf_document",
         "doc_label": "PDF Document",
         "pages":     pages_out,
     }
+
+    try:
+        if _cache_key:
+            st.session_state[_cache_key] = result_dict
+    except Exception:
+        pass
+
+    return result_dict
 
 
 # ─────────────────────────────────────────────────────────────────────────────

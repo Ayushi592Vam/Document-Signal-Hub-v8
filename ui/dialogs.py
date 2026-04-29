@@ -922,36 +922,70 @@ def show_claim_journey_dialog(
         f"<span style='font-size:9px;color:{_D_LBL};font-family:monospace;white-space:nowrap;'>{ts}</span>"
         f"</div>"
     )
-
+    
     _pipeline_steps.append(_step_row(
-        _D_GRN, "📂", "FILE PARSED",
-        "Claims read from the uploaded spreadsheet",
-        _ts_fmt(_ts_dialog_open)
+      _D_GRN, "📂", "FILE PARSED",
+      "Claims read from the uploaded spreadsheet",
+      _ts_fmt(_ts_dialog_open)
     ))
+
+    # ── NEW: Sheet title extraction step ─────────────────────────────────────────
+    _title_fields_in_state = st.session_state.get(
+       f"_title_fields_{selected_sheet}", {}
+)
+    if _title_fields_in_state:
+      _title_keys = ", ".join(list(_title_fields_in_state.keys())[:4])
+      _title_more = len(_title_fields_in_state) - 4
+      _title_summary = _title_keys + (f" +{_title_more} more" if _title_more > 0 else "")
+      _pipeline_steps.append(_step_row(
+         _D_PUR, "📋", "TITLE ROW EXTRACTED",
+         f"Sheet-level KV fields parsed (no LLM): {_title_summary}",
+         _ts_fmt(_ts_dialog_open)
+    ))
+
+    # ── NEW: Merged cell extraction step ─────────────────────────────────────────
+    _merged_meta_in_state = st.session_state.get(
+        f"_merged_meta_{selected_sheet}", {}
+)
+    if _merged_meta_in_state:
+       _n_merged = len(_merged_meta_in_state)
+       _merged_types = {}
+       for _mv in _merged_meta_in_state.values():
+           _mt = _mv.get("type", "UNKNOWN")
+           _merged_types[_mt] = _merged_types.get(_mt, 0) + 1
+       _merged_type_str = ", ".join(
+           f"{_n} {_t}" for _t, _n in _merged_types.items()
+    )
+       _pipeline_steps.append(_step_row(
+           _D_BLU, "⊞", "MERGED CELLS SCANNED",
+           f"{_n_merged} merged region(s) detected ({_merged_type_str}) — rule-based, no LLM",
+           _ts_fmt(_ts_dialog_open)
+    ))
+
     if active_schema:
-        _pipeline_steps.append(_step_row(
-            _D_BLU, "🗂", "SCHEMA MAPPED",
-            f"Fields matched to the {active_schema} schema template",
-            f"{_ts_fmt(_ts_schema_map)} ({_schema_map_ms}ms)"
-        ))
+       _pipeline_steps.append(_step_row(
+          _D_BLU, "🗂", "SCHEMA MAPPED",
+          f"Fields matched to the {active_schema} schema template",
+          f"{_ts_fmt(_ts_schema_map)} ({_schema_map_ms}ms)"
+    ))
     if _llm_mappings:
-        _llm_ts_display = _llm_called_at if _llm_called_at else _ts_fmt(_ts_llm_unpack)
-        _pipeline_steps.append(_step_row(
-            _D_YEL, "🤖", "LLM CALLED",
-            f"AI resolved {len(_llm_mappings)} unrecognised column(s) to known fields",
-            _llm_ts_display
-        ))
+       _llm_ts_display = _llm_called_at if _llm_called_at else _ts_fmt(_ts_llm_unpack)
+       _pipeline_steps.append(_step_row(
+         _D_YEL, "🤖", "LLM CALLED",
+         f"AI resolved {len(_llm_mappings)} unrecognised column(s) to known fields",
+         _llm_ts_display
+    ))
     _edit_count = sum(1 for e in _claim_audit if e.get("event") == "FIELD_EDITED")
     if _edit_count:
-        _last_edit_ts = max(
-            (e.get("timestamp", "")[:19] for e in _claim_audit if e.get("event") == "FIELD_EDITED"),
-            default=None,
-        )
-        _pipeline_steps.append(_step_row(
-            _D_YEL, "✏", "USER EDITS",
-            f"{_edit_count} field(s) manually updated by the user",
-            (_last_edit_ts.replace("T", " ") if _last_edit_ts else "—")
-        ))
+       _last_edit_ts = max(
+          (e.get("timestamp", "")[:19] for e in _claim_audit if e.get("event") == "FIELD_EDITED"),
+          default=None,
+    )
+       _pipeline_steps.append(_step_row(
+          _D_YEL, "✏", "USER EDITS",
+          f"{_edit_count} field(s) manually updated by the user",
+          (_last_edit_ts.replace("T", " ") if _last_edit_ts else "—")
+    ))
 
     st.markdown(
         f"<div style='background:{_D_BG};border:1px solid {_D_BDR};border-left:4px solid {_D_YEL};"
@@ -984,6 +1018,172 @@ def show_claim_journey_dialog(
 
     fields_to_show = list(_mapped.keys()) if _mapped else list(curr_claim.keys())
 
+    # ── TITLE / MERGED CELL fields block ─────────────────────────────────────
+    # These fields come from merged-cell header extraction, not from claim rows.
+    # They are stored in session_state under _title_fields_{sheet} by app2.py.
+    _title_fields_in_state = st.session_state.get(
+        f"_title_fields_{selected_sheet}", {}
+    )
+    _merged_meta_in_state = st.session_state.get(
+        f"_merged_meta_{selected_sheet}", {}
+    )
+
+    # Only show title/merged section if there are actual title fields
+    if _title_fields_in_state:
+        st.markdown(
+            f"<div style='display:flex;align-items:center;gap:8px;margin-bottom:8px;margin-top:4px;'>"
+            f"<div style='font-size:11px;font-weight:800;color:{_D_PUR};font-family:monospace;"
+            f"text-transform:uppercase;letter-spacing:1.5px;'>📋 Sheet-Level Fields"
+            f"<span style='font-size:9px;color:{_D_LBL};font-weight:400;margin-left:6px;'>"
+            f"extracted from merged/title cells — no LLM</span></div>"
+            f"<div style='flex:1;height:1px;background:linear-gradient(90deg,{_D_PUR}55,transparent);'></div>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
+        for _tf_name, _tf_info in _title_fields_in_state.items():
+            _tf_val = (
+                _tf_info.get("value", "") if isinstance(_tf_info, dict)
+                else str(_tf_info)
+            )
+            _tf_modified = (
+                _tf_info.get("modified", _tf_val) if isinstance(_tf_info, dict)
+                else _tf_val
+            )
+            _tf_edited = _tf_modified != _tf_val
+
+            # Metadata stored directly on the field info by extract_title_fields()
+            _tf_region_type = _tf_info.get("region_type", "") if isinstance(_tf_info, dict) else ""
+            _tf_cell_range  = _tf_info.get("cell_range", "")  if isinstance(_tf_info, dict) else ""
+            _tf_span_cols   = _tf_info.get("span_cols", 1)    if isinstance(_tf_info, dict) else 1
+            _tf_title_text  = _tf_info.get("title_text", _tf_val) if isinstance(_tf_info, dict) else _tf_val
+
+            # ── local style vars (defined here so they exist before use) ─────
+            _tf_val_box_style = (
+                f"font-size:13px;color:{_D_TXT};font-family:monospace;"
+                f"background:{_D_BG2};border:1px solid {_D_BDR};border-radius:4px;"
+                f"padding:4px 8px;margin-top:4px;word-break:break-all;"
+            )
+            _tf_code_style = (
+                f"background:{_D_BG2};padding:1px 5px;border-radius:3px;"
+                f"border:1px solid {_D_BDR};color:{_D_TXT};"
+            )
+
+            # ── MUST initialise before any += ────────────────────────────────
+            _tf_steps_html = ""
+
+            # Step 1 — Extraction
+            _tf_display_val = _tf_val if _tf_val else f"<span style='color:{_D_LBL};'>(empty)</span>"
+            _tf_steps_html += (
+                f"<div style='display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;'>"
+                f"{_step_circle(1, _D_GRN, _D_GRN_BG)}"
+                f"<div style='flex:1;'>"
+                f"<div style='display:flex;align-items:center;gap:8px;'>"
+                f"<div style='font-size:11px;font-weight:700;color:{_D_GRN};font-family:monospace;"
+                f"text-transform:uppercase;letter-spacing:1px;'>Extracted from Sheet</div>"
+                f"<span style='font-size:9px;color:{_D_LBL};font-family:monospace;margin-left:auto;'>"
+                f"modules.file_utils · extract_merged_cell_metadata()</span></div>"
+                f"<div style='font-size:12px;color:{_D_LBL};margin-top:2px;'>"
+                f"Source: <code style='{_tf_code_style}'>Merged / Title cell region</code></div>"
+                f"<div style='{_tf_val_box_style}'>{_tf_display_val}</div>"
+                f"</div></div>"
+                f"<div style='margin-left:11px;border-left:2px dashed {_D_BDR};"
+                f"height:8px;margin-bottom:8px;'></div>"
+            )
+
+            # Step 2 — Mapping method
+            _tf_steps_html += (
+                f"<div style='display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;'>"
+                f"{_step_circle(2, _D_PUR, _D_BLU_BG)}"
+                f"<div style='flex:1;'>"
+                f"<div style='display:flex;align-items:center;gap:8px;'>"
+                f"<div style='font-size:11px;font-weight:700;color:{_D_PUR};font-family:monospace;"
+                f"text-transform:uppercase;letter-spacing:1px;'>📋 TITLE ROW / MERGED CELL</div>"
+                f"<span style='font-size:9px;color:{_D_LBL};font-family:monospace;margin-left:auto;'>"
+                f"modules.schema_mapping · extract_title_fields()</span></div>"
+                f"<div style='font-size:12px;color:{_D_LBL};margin-top:2px;'>"
+                f"Rule-based key-value parse "
+                f"<span style='color:{_D_PUR};font-weight:600;'></span></div>"
+            )
+
+            # Region metadata block
+            if _tf_cell_range:
+                _rtype_color = _D_PUR if _tf_region_type == "TITLE" else _D_YEL
+                _tf_steps_html += (
+                    f"<div style='margin-top:4px;padding:5px 10px;"
+                    f"background:{_D_BG2};border:1px solid {_rtype_color}44;"
+                    f"border-left:3px solid {_rtype_color};border-radius:0 4px 4px 0;"
+                    f"font-size:11px;font-family:monospace;color:{_D_LBL};'>"
+                    f"<span style='color:{_rtype_color};font-weight:700;'>"
+                    f"{_tf_region_type or 'MERGED'}</span>"
+                    f" · Range: <code style='{_tf_code_style}'>{_tf_cell_range}</code>"
+                    f" · Spans {_tf_span_cols} columns"
+                    + (
+                        f"<br><span style='color:{_D_LBL};font-style:italic;'>"
+                        f"Full text: {_tf_title_text[:80]}"
+                        f"{'…' if len(_tf_title_text) > 80 else ''}</span>"
+                        if _tf_title_text != _tf_val else ""
+                    )
+                    + f"</div>"
+                )
+            else:
+                _tf_steps_html += (
+                    f"<div style='margin-top:4px;font-size:11px;color:{_D_LBL};"
+                    f"font-family:monospace;font-style:italic;'>"
+                    f"Extracted from sheet title row or named merged region</div>"
+                )
+
+            # Close step 2 div
+            _tf_steps_html += "</div></div>"
+
+            # Step 3 — Modified value (only if user edited)
+            if _tf_edited:
+                _tf_steps_html += (
+                    f"<div style='margin-left:11px;border-left:2px dashed {_D_BDR};"
+                    f"height:8px;margin-bottom:8px;'></div>"
+                    f"<div style='display:flex;align-items:flex-start;gap:10px;margin-bottom:4px;'>"
+                    f"{_step_circle('✓', _D_GRN, _D_GRN_BG)}"
+                    f"<div style='flex:1;'>"
+                    f"<div style='font-size:11px;font-weight:700;color:{_D_GRN};font-family:monospace;"
+                    f"text-transform:uppercase;letter-spacing:1px;'>Final Value (Modified)</div>"
+                    f"<div style='{_tf_val_box_style}color:{_D_GRN};border-color:{_D_GRN}60;'>"
+                    f"{_tf_modified}</div>"
+                    f"</div></div>"
+                )
+
+            # Badges
+            _tf_mod_badge = (
+                f"<span style='font-size:9px;font-weight:700;color:{_D_YEL};"
+                f"background:{_D_YEL_BG};border:1px solid {_D_YEL}60;"
+                f"border-radius:10px;padding:2px 8px;font-family:monospace;"
+                f"margin-left:8px;'>MODIFIED</span>" if _tf_edited else ""
+            )
+            _tf_src_badge = (
+                f"<span style='font-size:9px;font-weight:700;color:{_D_PUR};"
+                f"background:#f3eeff;border:1px solid {_D_PUR}44;"
+                f"border-radius:10px;padding:2px 8px;font-family:monospace;"
+                f"margin-left:8px;'>SHEET-LEVEL</span>"
+            )
+
+            st.markdown(
+                f"<div style='background:{_D_BG};border:1px solid {_D_PUR}55;"
+                f"border-left:4px solid {_D_PUR};"
+                f"border-radius:8px;padding:12px 14px;margin-bottom:10px;"
+                f"box-shadow:0 1px 4px rgba(107,63,212,0.08);'>"
+                f"<div style='font-size:12px;font-weight:800;color:{_D_TXT};font-family:monospace;"
+                f"text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;"
+                f"display:flex;align-items:center;gap:8px;'>"
+                f"{_tf_name}{_tf_src_badge}{_tf_mod_badge}</div>"
+                f"{_tf_steps_html}</div>",
+                unsafe_allow_html=True,
+            )
+
+        st.markdown(
+            f"<div style='height:6px;border-bottom:1px dashed {_D_BDR};margin-bottom:16px;'></div>",
+            unsafe_allow_html=True,
+        )
+
+    # ── Standard claim fields ─────────────────────────────────────────────────
     for field in fields_to_show:
         _ts_field = _dt.datetime.now()
 
@@ -1019,6 +1219,7 @@ def show_claim_journey_dialog(
         if from_title:
             method, method_color, method_icon = "TITLE ROW",    _D_PUR, "📋"
             method_fn = "parsing.py · extract_title_fields()"
+            
         elif llm_mapped:
             method, method_color, method_icon = "LLM MAPPED",   _D_YEL, "🤖"
             method_fn = f"modules.llm · llm_map_unknown_fields() → {_llm_model}"

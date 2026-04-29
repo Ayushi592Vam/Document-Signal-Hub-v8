@@ -616,6 +616,9 @@ if selected_sheet not in st.session_state.sheet_cache:
                 totals_data = extract_totals_row(excel_path, selected_sheet)
                 total_rows, total_cols = get_sheet_dimensions(excel_path, selected_sheet)
 
+                # PATCH 6A — cache merged cells for Transformation Journey
+                st.session_state[f"_merged_meta_{selected_sheet}"] = merged_meta
+
                 for row in data:
                     for fld, inf in row.items():
                         if "value" in inf and isinstance(inf["value"], str):
@@ -627,6 +630,9 @@ if selected_sheet not in st.session_state.sheet_cache:
                     for _tk, _tv in _title_kvs_raw.items():
                         if _tk not in _title_flds:
                             _title_flds[_tk] = _tv
+
+                # PATCH 6B — cache title fields for Transformation Journey
+                st.session_state[f"_title_fields_{selected_sheet}"] = _title_flds
 
                 data, _col_rename_log = rename_columns_to_standard(data)
 
@@ -689,6 +695,9 @@ if selected_sheet not in st.session_state.sheet_cache:
             merged_meta = extract_merged_cell_metadata(excel_path, selected_sheet)
             totals_data = extract_totals_row(excel_path, selected_sheet)
             _title_flds = extract_title_fields(merged_meta)
+            # PATCH 6C — cache for Transformation Journey (cache-load path)
+            st.session_state[f"_merged_meta_{selected_sheet}"] = merged_meta
+            st.session_state[f"_title_fields_{selected_sheet}"] = _title_flds
         except Exception:
             pass
 

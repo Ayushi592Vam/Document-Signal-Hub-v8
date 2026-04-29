@@ -78,7 +78,7 @@ def _llm_extract_cause_of_loss(description_text: str, sheet_name: str = "") -> d
         'Reply ONLY with valid JSON, no markdown, no explanation:\n'
         '{"cause_of_loss": "<exact taxonomy label>", "summary": "<one sentence>"}'
     )
-    raw = _llm_call(prompt, max_tokens=120)
+    raw = _llm_call(prompt, max_tokens=120, call_purpose="cause_of_loss")
     raw = raw.strip().lstrip("```json").lstrip("```").rstrip("```").strip()
     return __import__("json").loads(raw)
 

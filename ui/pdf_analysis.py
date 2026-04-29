@@ -4576,6 +4576,7 @@ def render_pdf_analysis_panel(
     meta     = _get_doc_type_meta(doc_type)
     subtype  = intelligence.get("analysis", {}).get("detected_subtype") or ""
 
+    # REPLACE the fingerprint change block in render_pdf_analysis_panel:
     _intel_fp = (
         uploaded_name
         + "|" + str(intelligence.get("page_count", 0))
@@ -4585,17 +4586,6 @@ def render_pdf_analysis_panel(
     )
     _prev_fp = st.session_state.get("_pdf_analysis_intel_fp")
     if _prev_fp != _intel_fp:
-        # Only wipe cost logs if we're switching FROM a previously seen file,
-        # not on the very first load (where _prev_fp is None means app just started)
-        if _prev_fp is not None and _prev_fp != _intel_fp:
-           st.session_state.pop("_llm_cost_log", None)
-           st.session_state.pop("_adi_cost_log", None)
-
-        # Only bust intel cache when switching files, not on first load
-           for k in list(st.session_state.keys()):
-              if k.startswith("_intel_result_"):
-                 st.session_state.pop(k, None)  
-
         for _stale_key in (
             "_adi_lookup",
             "_adi_lookup_file",
@@ -4605,7 +4595,7 @@ def render_pdf_analysis_panel(
             "_pdf_edits",
             "_pdf_edit_hist",
             "_pdf_edit_mode_fields",
-            "_pdf_delete_confirm",      # FEATURE A: clear delete confirm state on doc change
+            "_pdf_delete_confirm",
         ):
             st.session_state.pop(_stale_key, None)
         for _k in list(st.session_state.keys()):

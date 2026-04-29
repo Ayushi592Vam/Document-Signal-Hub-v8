@@ -332,3 +332,36 @@ def get_totals_for_sheet(
         return totals
 
     return compute_totals_from_claims(claims_data)
+
+# ── PATCH 6: session-state cache for Transformation Journey ──────────────────
+
+def cache_sheet_metadata_for_journey(
+    file_path: str,
+    sheet_name: str,
+    title_fields: dict | None = None,
+) -> None:
+    """
+    Write merged-cell metadata and (optionally) title fields into
+    st.session_state so the Transformation Journey dialog can display
+    the extraction pipeline steps.
+
+    Call this once per sheet after parsing is complete:
+
+        from modules.file_utils import cache_sheet_metadata_for_journey
+        cache_sheet_metadata_for_journey(excel_path, sheet_name, title_fields)
+    """
+    try:
+        import streamlit as st
+
+        # ── Merged cells ──────────────────────────────────────────────────────
+        _mk = f"_merged_meta_{sheet_name}"
+        if _mk not in st.session_state:          # only re-compute on first load
+            merged_meta = extract_merged_cell_metadata(file_path, sheet_name)
+            st.session_state[_mk] = merged_meta
+
+        # ── Title fields ──────────────────────────────────────────────────────
+        if title_fields is not None:
+            st.session_state[f"_title_fields_{sheet_name}"] = title_fields
+
+    except Exception:
+        pass   # Never let metadata caching break the main parse flow    
